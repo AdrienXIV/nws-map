@@ -1,136 +1,227 @@
+// import 'ol/ol.css';
+// import Map from 'ol/Map';
+// import View from 'ol/View';
+// import {defaults as defaultInteractions, DragRotateAndZoom} from 'ol/interaction';
+// import TileLayer from 'ol/layer/Tile';
+// import OSM from 'ol/source/OSM';
+// import {transform} from 'ol/proj';
+//
+// // coordonnées récupérées depuis https://www.latlong.net/convert-address-to-lat-long.html
+// var nws = transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857');
+//
+// var map = new Map({
+//   interactions: defaultInteractions().extend([
+//     new DragRotateAndZoom()
+//   ]),
+//   layers: [
+//     new TileLayer({
+//       source: new OSM()
+//     })
+//   ],
+//   target: 'carteNWS',
+//   view: new View({
+//     projection: 'EPSG:3857',
+//     center: nws,
+//     zoom: 14
+//   })
+// });
+
 import './source.scss';
 import 'ol/ol.css';
+import Feature from 'ol/Feature';
 import Map from 'ol/Map';
 import View from 'ol/View';
+import Overlay from 'ol/Overlay';
+import GeoJSON from 'ol/format/GeoJSON';
 import {
-  defaults as defaultInteractions,
-  DragRotateAndZoom
-} from 'ol/interaction';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
+  Tile as TileLayer,
+  Vector as VectorLayer
+} from 'ol/layer';
+import {
+  OSM,
+  Vector as VectorSource
+} from 'ol/source';
+import {
+  Circle as CircleStyle,
+  Fill,
+  Stroke,
+  Style,
+  Text
+} from 'ol/style';
 import {
   transform
 } from 'ol/proj';
-import {
-  Fill,
-  Stroke,
-  Circle,
-  Style
-} from 'ol/style';
-import MultiPoint from 'ol/geom/MultiPoint';
+import * as olCoordinate from 'ol/coordinate';
 
 
-// coordonnées récupérées depuis https://www.latlong.net/convert-address-to-lat-long.html
-//var nws = transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857');
-var place = [
-  [1.066530, 49.428470, '#8959A8'],
-  [1.0658973, 49.4283412],
-  [1.1199897, 49.4511544]
-]
-var highlightStyle = new Style({
+var imagePoint = new CircleStyle({
+  radius: 3.5,
   fill: new Fill({
-    color: 'red',
-    width: 3
+    color: 'rgba(255,0,0,0.2)'
   }),
   stroke: new Stroke({
     color: 'red',
-    width: 3
+    width: 1
+  })
+});
+var imageHighlightPoint = new CircleStyle({
+  radius: 4,
+  fill: new Fill({
+    color: 'rgba(255,0,0,0.7)'
+  }),
+  stroke: new Stroke({
+    color: 'red',
+    width: 1
   })
 });
 
-var nws = ol.proj.fromLonLat([1.066530, 49.428470]);
-var view = new ol.View({
-  center: nws,
-  zoom: 12 // 5
+var styles = {
+  'Point': new Style({
+    image: imagePoint
+  }),
+  'HighlightPoint': new Style({
+    image: imageHighlightPoint,
+    text: new Text({
+      offsetY: -15,
+      font: '14px Calibri,sans-serif',
+      fill: new Fill({
+        color: '#000'
+      }),
+      stroke: new Stroke({
+        color: '#fff',
+        width: 2
+      }),
+      text: ''
+    })
+  })
+};
+
+var styleFunction = function (feature) {
+  return styles[feature.getGeometry().getType()];
+};
+
+var geojsonObject = {
+  'type': 'FeatureCollection',
+  'crs': {
+    'type': 'name',
+    'properties': {
+      'name': 'EPSG:3857'
+    }
+  },
+  'features': [{
+      'type': 'Feature',
+      'geometry': {
+        'type': 'Point',
+        'coordinates': transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857')
+      },
+      'properties': {
+        'name': 'Normandie Web School'
+      }
+    },
+    {
+      'type': 'Feature',
+      'geometry': {
+        'type': 'Point',
+        'coordinates': transform([1.064756, 49.422390], 'EPSG:4326', 'EPSG:3857')
+      },
+      'properties': {
+        'name': 'Les Copeaux Numériques'
+      }
+    },
+    {
+      'type': 'Feature',
+      'geometry': {
+        'type': 'Point',
+        'coordinates': transform([1.120096, 49.451086], 'EPSG:4326', 'EPSG:3857')
+      },
+      'properties': {
+        'name': 'ISD Flaubert'
+      }
+    }
+  ]
+};
+
+var vectorSource = new VectorSource({
+  features: (new GeoJSON()).readFeatures(geojsonObject)
 });
 
-var vectorSource = new ol.source.Vector({});
-var places = [
-  [1.0615, 49.4134, 'http://maps.google.com/mapfiles/ms/micons/blue.png', '#8959A8'],
-  [1.06453,49.4223, 'http://maps.google.com/mapfiles/ms/micons/blue.png', '#4271AE'],
-  [1.1199897, 49.4511544, 'http://maps.google.com/mapfiles/ms/micons/blue.png', [113, 140, 0]],
-];
-
-var features = [];
-for (var i = 0; i < places.length; i++) {
-  var iconFeature = new ol.Feature({
-    geometry: new ol.geom.Point(ol.proj.transform([places[i][0], places[i][1]], 'EPSG:4326', 'EPSG:3857')),
-  });
-
-
-  /* from https://openlayers.org/en/latest/examples/icon-color.html
-    rome.setStyle(new ol.style.Style({
-      image: new ol.style.Icon(({
-       color: '#8959A8',
-       crossOrigin: 'anonymous',
-       src: 'https://openlayers.org/en/v4.6.5/examples/data/dot.png'
-      }))
-    })); */
-
-  var oldStyle = new ol.style.Style({
-    image: new ol.style.Icon({
-      anchor: [0.5, 0.5],
-      anchorXUnits: 'fraction',
-      anchorYUnits: 'fraction',
-      src: places[i][2],
-      color: 'red',
-      crossOrigin: 'anonymous',
-    })
-  });
-  var newStyle = new ol.style.Style({
-    image: new ol.style.Icon({
-      anchor: [0.5, 0.5],
-      anchorXUnits: 'fraction',
-      anchorYUnits: 'fraction',
-      src: places[i][2],
-      color: places[i][3],
-      crossOrigin: 'anonymous',
-    })
-  });
-  iconFeature.setStyle(oldStyle);
-  vectorSource.addFeature(iconFeature);
-}
-
-
-
-var vectorLayer = new ol.layer.Vector({
+var vectorLayer = new VectorLayer({
   source: vectorSource,
-  updateWhileAnimating: true,
-  updateWhileInteracting: true,
+  style: styleFunction
 });
 
-var map = new ol.Map({
-  target: 'map',
-  view: view,
+/**
+ * Elements that make up the popup.
+ */
+var container = document.getElementById('popup');
+var content = document.getElementById('popup-content');
+var closer = document.getElementById('popup-closer');
+
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+var overlay = new Overlay({
+  element: container,
+  autoPan: true,
+  autoPanAnimation: {
+    duration: 250
+  }
+});
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function () {
+  overlay.setPosition(undefined);
+  closer.blur();
+  return false;
+};
+
+var map = new Map({
   layers: [
-    new ol.layer.Tile({
-      preload: 3,
-      source: new ol.source.OSM(),
+    new TileLayer({
+      source: new OSM()
     }),
-    vectorLayer,
+    vectorLayer
   ],
-  loadTilesWhileAnimating: true,
+  overlays: [overlay],
+  target: 'carteNWS',
+  view: new View({
+    center: transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857'),
+    zoom: 12
+  })
 });
-
 
 var selected = null;
-var status = document.getElementById('status');
-
-map.on('pointermove', function(e) {
+map.on('pointermove', function (e) {
   if (selected !== null) {
-    selected.setStyle(oldStyle);
+    selected.setStyle(undefined);
     selected = null;
   }
 
-  map.forEachFeatureAtPixel(e.pixel, function(f) {
+  map.forEachFeatureAtPixel(e.pixel, function (f) {
     selected = f;
-    f.setStyle(newStyle);
+
+    var geometry = f.getGeometry();
+    var style = styles['Highlight' + geometry.getType()];
+    style.getText().setText(f.get('name'));
+    f.setStyle(style);
     return true;
   });
+});
 
-  if (selected) {
-    status.innerHTML = '&nbsp;Hovering: ' + selected.get('name');
-  } else {
-    status.innerHTML = '&nbsp;';
-  }
+
+
+/**
+ * Add a click handler to the map to render the popup.
+ */
+map.on('singleclick', function (evt) {
+  var coordinate = evt.coordinate;
+  var hdms = olCoordinate.toStringHDMS(transform(
+    coordinate, 'EPSG:3857', 'EPSG:4326'));
+
+  content.innerHTML = '<p>You clicked here:</p><code>' + hdms +
+    '</code>';
+  overlay.setPosition(coordinate);
 });
