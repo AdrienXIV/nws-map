@@ -115,7 +115,8 @@ var geojsonObject = {
         'coordinates': transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857')
       },
       'properties': {
-        'name': 'Normandie Web School'
+        'name': 'Normandie Web School',
+        'description': "La Normandie Web School est l'école des métiers du numérique, avec 3 filières métiers : développement web & mobile, marketing digital et communication visuelle."
       }
     },
     {
@@ -125,7 +126,8 @@ var geojsonObject = {
         'coordinates': transform([1.064756, 49.422390], 'EPSG:4326', 'EPSG:3857')
       },
       'properties': {
-        'name': 'Les Copeaux Numériques'
+        'name': 'Les Copeaux Numériques',
+        'description': "Le Kaléidoscope est le tiers-lieu créatif et inspirant créé en 2017 à Petit-Quevilly par la coopérative Les Copeaux Numériques. Ce lieu unique sur la Métropole Rouen Normandie s’articule autour d’espaces de coworking, d’ateliers partagés (fablab, labo photo argentique, menuiserie) et d’un café culturel."
       }
     },
     {
@@ -135,7 +137,8 @@ var geojsonObject = {
         'coordinates': transform([1.120096, 49.451086], 'EPSG:4326', 'EPSG:3857')
       },
       'properties': {
-        'name': 'ISD Flaubert'
+        'name': 'ISD Flaubert',
+        'description': "L'ISD Flaubert propose des formations en alternance en Communication, Développement de Business, Gestion de PME & Webmarketing."
       }
     }
   ]
@@ -217,11 +220,11 @@ map.on('pointermove', function (e) {
  * Add a click handler to the map to render the popup.
  */
 map.on('singleclick', function (evt) {
-  var coordinate = evt.coordinate;
-  var hdms = olCoordinate.toStringHDMS(transform(
-    coordinate, 'EPSG:3857', 'EPSG:4326'));
-
-  content.innerHTML = '<p>You clicked here:</p><code>' + hdms +
-    '</code>';
-  overlay.setPosition(coordinate);
+  map.forEachFeatureAtPixel(evt.pixel, function (f) {
+    var coordinate = evt.coordinate;
+    var hdms = olCoordinate.toStringHDMS(transform(
+      coordinate, 'EPSG:3857', 'EPSG:4326'));
+    content.innerHTML = '<p>' + f.get('description') + '</p>';
+    overlay.setPosition(coordinate);
+  });
 });
