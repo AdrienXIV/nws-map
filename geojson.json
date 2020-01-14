@@ -1,0 +1,24 @@
+[{
+        "coordonnees": {
+            "lat": 49.428470,
+            "long": 1.066530
+        },
+        "name": "Normandie Web School",
+        "description": "La Normandie Web School est l'école des métiers du numérique, avec 3 filières métiers : développement web & mobile, marketing digital et communication visuelle."
+    },
+    {
+        "coordonnees": {
+            "lat": 49.422390,
+            "long": 1.064756
+        },
+        "name": "Les Copeaux Numériques",
+        "description": "Le Kaléidoscope est le tiers-lieu créatif et inspirant créé en 2017 à Petit-Quevilly par la coopérative Les Copeaux Numériques. Ce lieu unique sur la Métropole Rouen Normandie s’articule autour d’espaces de coworking, d’ateliers partagés (fablab, labo photo argentique, menuiserie) et d’un café culturel."
+    }, {
+        "coordonnees": {
+            "lat": 49.451086,
+            "long": 1.120096
+        },
+        "name": "ISD Flaubert",
+        "description": "L'ISD Flaubert propose des formations en alternance en Communication, Développement de Business, Gestion de PME & Webmarketing."
+    }
+]

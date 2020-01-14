@@ -83,13 +83,13 @@ var styles = {
     image: imageHighlightPoint,
     text: new Text({
       offsetY: -15,
-      font: '14px Calibri,sans-serif',
+      font: '18px Calibri,sans-serif',
       fill: new Fill({
-        color: '#000'
+        color: '#000',
       }),
       stroke: new Stroke({
         color: '#fff',
-        width: 2
+        width: 4
       }),
       text: ''
     })
@@ -99,7 +99,7 @@ var styles = {
 var styleFunction = function (feature) {
   return styles[feature.getGeometry().getType()];
 };
-
+/*
 var geojsonObject = {
   'type': 'FeatureCollection',
   'crs': {
@@ -142,10 +142,48 @@ var geojsonObject = {
       }
     }
   ]
-};
+};*/
+var geojson = require('../geojson.json');
+var geojsonObject = [];
+var i = 0;
+/*var coordinate = [
+  transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857'),
+  transform([1.064756, 49.422390], 'EPSG:4326', 'EPSG:3857'),
+  transform([1.120096, 49.451086], 'EPSG:4326', 'EPSG:3857')
+];*/
+geojson.forEach(element => {
+  console.log(element.coordonnees.lat)
+  geojsonObject.push({
+    'type': 'FeatureCollection',
+    'crs': {
+      'type': 'name',
+      'properties': {
+        'name': 'EPSG:3857'
+      }
+    },
+    'features': [{
+      'type': 'Feature',
+      'geometry': {
+        'type': 'Point',
+        'coordinates': transform([element.coordonnees.long, element.coordonnees.lat], 'EPSG:4326', 'EPSG:3857')
+      },
+      'properties': {
+        'name': element.name,
+        'description': element.description
+      }
+    }]
+  });
+});
+
+console.log(geojsonObject) 
+
+var features = new GeoJSON().readFeatures(geojsonObject, {
+  dataProjection: "EPSG:4326",
+  featureProjection: "EPSG:3857"
+});
 
 var vectorSource = new VectorSource({
-  features: (new GeoJSON()).readFeatures(geojsonObject)
+  features
 });
 
 var vectorLayer = new VectorLayer({
@@ -221,10 +259,13 @@ map.on('pointermove', function (e) {
  */
 map.on('singleclick', function (evt) {
   map.forEachFeatureAtPixel(evt.pixel, function (f) {
+    //résupérer position du click pour afficher la popoup dessus
     var coordinate = evt.coordinate;
-    var hdms = olCoordinate.toStringHDMS(transform(
-      coordinate, 'EPSG:3857', 'EPSG:4326'));
+
+    //ajout du texte dans la popup
     content.innerHTML = '<p>' + f.get('description') + '</p>';
+
+    //affichage
     overlay.setPosition(coordinate);
   });
 });
