@@ -52,6 +52,7 @@ import {
   transform
 } from 'ol/proj';
 import * as olCoordinate from 'ol/coordinate';
+import $ from "jquery";
 
 
 var imagePoint = new CircleStyle({
@@ -99,83 +100,39 @@ var styles = {
 var styleFunction = function (feature) {
   return styles[feature.getGeometry().getType()];
 };
-/*
+var api_features = [];
 var geojsonObject = {
-  'type': 'FeatureCollection',
-  'crs': {
-    'type': 'name',
-    'properties': {
-      'name': 'EPSG:3857'
+  type: 'FeatureCollection',
+  crs: {
+    type: 'name',
+    properties: {
+      name: 'EPSG:3857'
     }
   },
-  'features': [{
-      'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857')
-      },
-      'properties': {
-        'name': 'Normandie Web School',
-        'description': "La Normandie Web School est l'école des métiers du numérique, avec 3 filières métiers : développement web & mobile, marketing digital et communication visuelle."
-      }
-    },
-    {
-      'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': transform([1.064756, 49.422390], 'EPSG:4326', 'EPSG:3857')
-      },
-      'properties': {
-        'name': 'Les Copeaux Numériques',
-        'description': "Le Kaléidoscope est le tiers-lieu créatif et inspirant créé en 2017 à Petit-Quevilly par la coopérative Les Copeaux Numériques. Ce lieu unique sur la Métropole Rouen Normandie s’articule autour d’espaces de coworking, d’ateliers partagés (fablab, labo photo argentique, menuiserie) et d’un café culturel."
-      }
-    },
-    {
-      'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': transform([1.120096, 49.451086], 'EPSG:4326', 'EPSG:3857')
-      },
-      'properties': {
-        'name': 'ISD Flaubert',
-        'description': "L'ISD Flaubert propose des formations en alternance en Communication, Développement de Business, Gestion de PME & Webmarketing."
-      }
-    }
-  ]
-};*/
-var geojson = require('../geojson.json');
-var geojsonObject = [];
-var i = 0;
-/*var coordinate = [
-  transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857'),
-  transform([1.064756, 49.422390], 'EPSG:4326', 'EPSG:3857'),
-  transform([1.120096, 49.451086], 'EPSG:4326', 'EPSG:3857')
-];*/
-geojson.forEach(element => {
-  console.log(element.coordonnees.lat)
-  geojsonObject.push({
-    'type': 'FeatureCollection',
-    'crs': {
-      'type': 'name',
-      'properties': {
-        'name': 'EPSG:3857'
-      }
-    },
-    'features': [{
-      'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': transform([element.coordonnees.long, element.coordonnees.lat], 'EPSG:4326', 'EPSG:3857')
-      },
-      'properties': {
-        'name': element.name,
-        'description': element.description
-      }
-    }]
-  });
-});
+  features: api_features
+};
 
-console.log(geojsonObject) 
+$.ajax({
+  url: 'http://localhost:8080/coordonnees',
+  type: 'GET',
+  dataType: 'json',
+  success: function (response) {
+    response.forEach(element => {
+      api_features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: transform(element.coordonnees, 'EPSG:4326', 'EPSG:3857')
+        },
+        properties: {
+          entreprise: element.entreprise
+        }
+      });
+    })
+  }
+});
+console.log(geojsonObject)
+
 
 var features = new GeoJSON().readFeatures(geojsonObject, {
   dataProjection: "EPSG:4326",
