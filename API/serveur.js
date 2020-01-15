@@ -78,8 +78,12 @@ app.get('/coordonnees', function (req, res) {
       let response = [];
       doc.forEach(element => {
         response.push({
-          coordonnees: element.geometry.coordinates,
-          entreprise: element.properties
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: element.geometry.coordinates,
+          },
+          properties: element.properties
         });
       });
 
