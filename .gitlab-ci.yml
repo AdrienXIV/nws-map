@@ -16,8 +16,8 @@ job:2:
   stage: test
   script: 
     - echo 'my second job'
-    - npm dev
+    - npm run dev
 
 job:3:
   stage: deploy
-  script: npm build
+  script: npm run build
