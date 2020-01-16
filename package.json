@@ -5,7 +5,11 @@
   "scripts": {
     "start:dev": "webpack-dev-server",
     "dev": "webpack --config webpack.config.js --mode development",
-    "build": "webpack --config webpack.config.js --mode production"
+    "build": "webpack --config webpack.config.js --mode production",
+    "minifier": "echo 'minify'",
+    "deploy-stage": "echo 'Deploying to STAGING'",
+    "deploy-prod": "echo 'Deploying to PRODUCTION'"
+
   },
   "repository": {
     "type": "git",
