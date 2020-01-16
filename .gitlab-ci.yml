@@ -13,6 +13,6 @@ deploy:
     # your build command
     #- npm run build
     - npm install -g npx
-    - npm install netlify-cli@latest
+    - npm install netlify-cli
     - npm audit fix
     - npx netlify-cli deploy --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
