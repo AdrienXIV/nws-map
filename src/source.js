@@ -52,177 +52,182 @@ import {
   transform
 } from 'ol/proj';
 import * as olCoordinate from 'ol/coordinate';
+import Point from 'ol/geom/Point';
 import $ from "jquery";
 
 
-var imagePoint = new CircleStyle({
-  radius: 3.5,
-  fill: new Fill({
-    color: 'rgba(255,0,0,0.2)'
-  }),
-  stroke: new Stroke({
-    color: 'red',
-    width: 1
-  })
-});
-var imageHighlightPoint = new CircleStyle({
-  radius: 4,
-  fill: new Fill({
-    color: 'rgba(255,0,0,0.7)'
-  }),
-  stroke: new Stroke({
-    color: 'red',
-    width: 1
-  })
-});
 
-var styles = {
-  'Point': new Style({
-    image: imagePoint
-  }),
-  'HighlightPoint': new Style({
-    image: imageHighlightPoint,
-    text: new Text({
-      offsetY: -15,
-      font: '18px Calibri,sans-serif',
-      fill: new Fill({
-        color: '#000',
-      }),
-      stroke: new Stroke({
-        color: '#fff',
-        width: 4
-      }),
-      text: ''
-    })
-  })
-};
-
-var styleFunction = function (feature) {
-  return styles[feature.getGeometry().getType()];
-};
-var api_features = [];
-var geojsonObject = {
-  type: 'FeatureCollection',
-  crs: {
-    type: 'name',
-    properties: {
-      name: 'EPSG:3857'
-    }
-  },
-  features: api_features
-};
 
 $.ajax({
   url: 'http://localhost:8080/coordonnees',
   type: 'GET',
   dataType: 'json',
   success: function (response) {
-    response.forEach(element => {
-      api_features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: transform(element.coordonnees, 'EPSG:4326', 'EPSG:3857')
-        },
-        properties: {
-          entreprise: element.entreprise
+    var features = response;
+
+    features.forEach(function (element) {
+      // transformations des coordonnees de la réponse du serveur
+      element.geometry.coordinates = transform(element.geometry.coordinates, 'EPSG:4326', 'EPSG:3857')
+    });
+
+    var geojsonObject = {
+      'type': 'FeatureCollection',
+      'crs': {
+        'type': 'name',
+        'properties': {
+          'name': 'EPSG:3857'
         }
+      },
+      'features': features
+    };
+
+    var imagePoint = new CircleStyle({
+      radius: 3.5,
+      fill: new Fill({
+        color: 'rgba(255,0,0,0.2)'
+      }),
+      stroke: new Stroke({
+        color: 'red',
+        width: 1
+      })
+    });
+    var imageHighlightPoint = new CircleStyle({
+      radius: 4,
+      fill: new Fill({
+        color: 'rgba(255,0,0,0.7)'
+      }),
+      stroke: new Stroke({
+        color: 'red',
+        width: 1
+      })
+    });
+
+    var styles = {
+      'Point': new Style({
+        image: imagePoint
+      }),
+      'HighlightPoint': new Style({
+        image: imageHighlightPoint,
+        text: new Text({
+          offsetY: -15,
+          font: '18px Calibri,sans-serif',
+          fill: new Fill({
+            color: '#000',
+          }),
+          stroke: new Stroke({
+            color: '#fff',
+            width: 4
+          }),
+          text: ''
+        })
+      })
+    };
+
+    var styleFunction = function (feature) {
+      return styles[feature.getGeometry().getType()];
+    };
+
+    // Chargement des points
+    var vectorSource = new VectorSource({
+      features: (new GeoJSON()).readFeatures(geojsonObject)
+    });
+
+    var vectorLayer = new VectorLayer({
+      source: vectorSource,
+      style: styleFunction
+    });
+
+    /**
+     * Elements that make up the popup.
+     */
+    var container = document.getElementById('popup');
+    var content = document.getElementById('popup-content');
+    var closer = document.getElementById('popup-closer');
+
+    /**
+     * Create an overlay to anchor the popup to the map.
+     */
+    var overlay = new Overlay({
+      element: container,
+      autoPan: true,
+      autoPanAnimation: {
+        duration: 250
+      }
+    });
+
+    /**
+     * Add a click handler to hide the popup.
+     * @return {boolean} Don't follow the href.
+     */
+    closer.onclick = function () {
+      overlay.setPosition(undefined);
+      closer.blur();
+      return false;
+    };
+
+    var map = new Map({
+      layers: [
+        new TileLayer({
+          source: new OSM()
+        }),
+        vectorLayer
+      ],
+      overlays: [overlay],
+      target: 'carteNWS',
+      view: new View({
+        center: transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857'),
+        zoom: 12
+      })
+    });
+
+    var selected = null;
+    map.on('pointermove', function (e) {
+      if (selected !== null) {
+        selected.setStyle(undefined);
+        selected = null;
+      }
+
+      map.forEachFeatureAtPixel(e.pixel, function (f) {
+        selected = f;
+
+        var geometry = f.getGeometry();
+        var style = styles['Highlight' + geometry.getType()];
+        style.getText().setText(f.get('nom'));
+        f.setStyle(style);
+        return true;
       });
-    })
+    });
+
+
+
+    /**
+     * Add a click handler to the map to render the popup.
+     */
+    map.on('singleclick', function (evt) {
+      map.forEachFeatureAtPixel(evt.pixel, function (f) {
+        //résupérer position du click pour afficher la popoup dessus
+        var coordinate = evt.coordinate;
+        $('#popup-content').css('text-align', 'justify');
+        let entreprises = [];
+        f.getProperties().entreprises.forEach(element => {
+          entreprises.push({
+            nom: element.nom,
+            codeAPE: element.codeAPE,
+            secteur: element.secteur,
+          });
+        });
+        //ajout du texte dans la popup
+        content.innerHTML = '<p>' + f.get('adresse') + ', ' + f.get('ville') + ', ' + f.get('codepostal') + '</p>';
+        content.innerHTML += '<p>' + f.get('description') + '</p>';
+        content.innerHTML += '<p>Entreprises :</p>';
+        entreprises.forEach(element => {
+          content.innerHTML += '<p>&nbsp;&nbsp; - ' + element.nom  + '</p>';
+          content.innerHTML += '<BR>';
+        });
+
+        //affichage
+        overlay.setPosition(coordinate);
+      });
+    });
   }
-});
-console.log(geojsonObject)
-
-
-var features = new GeoJSON().readFeatures(geojsonObject, {
-  dataProjection: "EPSG:4326",
-  featureProjection: "EPSG:3857"
-});
-
-var vectorSource = new VectorSource({
-  features
-});
-
-var vectorLayer = new VectorLayer({
-  source: vectorSource,
-  style: styleFunction
-});
-
-/**
- * Elements that make up the popup.
- */
-var container = document.getElementById('popup');
-var content = document.getElementById('popup-content');
-var closer = document.getElementById('popup-closer');
-
-/**
- * Create an overlay to anchor the popup to the map.
- */
-var overlay = new Overlay({
-  element: container,
-  autoPan: true,
-  autoPanAnimation: {
-    duration: 250
-  }
-});
-
-/**
- * Add a click handler to hide the popup.
- * @return {boolean} Don't follow the href.
- */
-closer.onclick = function () {
-  overlay.setPosition(undefined);
-  closer.blur();
-  return false;
-};
-
-var map = new Map({
-  layers: [
-    new TileLayer({
-      source: new OSM()
-    }),
-    vectorLayer
-  ],
-  overlays: [overlay],
-  target: 'carteNWS',
-  view: new View({
-    center: transform([1.066530, 49.428470], 'EPSG:4326', 'EPSG:3857'),
-    zoom: 12
-  })
-});
-
-var selected = null;
-map.on('pointermove', function (e) {
-  if (selected !== null) {
-    selected.setStyle(undefined);
-    selected = null;
-  }
-
-  map.forEachFeatureAtPixel(e.pixel, function (f) {
-    selected = f;
-
-    var geometry = f.getGeometry();
-    var style = styles['Highlight' + geometry.getType()];
-    style.getText().setText(f.get('name'));
-    f.setStyle(style);
-    return true;
-  });
-});
-
-
-
-/**
- * Add a click handler to the map to render the popup.
- */
-map.on('singleclick', function (evt) {
-  map.forEachFeatureAtPixel(evt.pixel, function (f) {
-    //résupérer position du click pour afficher la popoup dessus
-    var coordinate = evt.coordinate;
-
-    //ajout du texte dans la popup
-    content.innerHTML = '<p>' + f.get('description') + '</p>';
-
-    //affichage
-    overlay.setPosition(coordinate);
-  });
 });
