@@ -7,7 +7,7 @@ deploy:
     name: production
     url: https://your.website.com
   only:
-    - master
+    - develop
   script:
     - npm i
     # your build command
