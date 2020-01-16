@@ -1,20 +1,17 @@
-stages: # Ici on déclare toutes nos étapes
+image: node:10.5.0
+
+stages:
   - build
   - test
   - deploy
 
-job:build:
-  stage: build # On déclare que ce `job` fait partie de l'étape build
-  script: make build
+before_script:
+  - npm install
 
-job:test:unit:
-  stage: test # On déclare que ce `job` fait partie de l'étape test
-  script: make test-unit
+job:1:
+  script: echo 'my first job'
 
-job:test:functional:
-  stage: test # On déclare que ce `job` fait partie de l'étape test
-  script: make test-functional
-
-job:deploy:
-  stage: deploy # On déclare que ce `job` fait partie de l'étape deploy
-  script: make deploy
+job:2:
+  script: 
+    - echo 'my second job'
+    - npm build
