@@ -7,7 +7,7 @@ deploy:
   stage: deploy
   environment:
     name: production
-    url: https://your.website.com
+    url: https://elated-mclean-3f8e20.netlify.com/
   script:
     - npm install
     # your build command
