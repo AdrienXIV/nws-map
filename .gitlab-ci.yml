@@ -1,23 +1,15 @@
-image: node:10.5.0
-
 stages:
-  - build
-  - test
   - deploy
 
-before_script:
-  - npm install
-
-job:1:
-  stage: build
-  script: echo 'my first job'
-
-job:2:
-  stage: test
-  script: 
-    - echo 'my second job'
-    - npm run dev
-
-job:3:
+deploy:
   stage: deploy
-  script: npm run build
+  environment:
+    name: production
+    url: https://your.website.com
+  only:
+    - master
+  script:
+    - npm i
+    # your build command
+    - npm run build
+    - npx netlify-cli deploy --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
