@@ -9,7 +9,7 @@ deploy:
     name: production
     url: https://elated-mclean-3f8e20.netlify.com/
   script:
-    - npm install
+    - npm install -g
     # your build command
     #- npm run build
     - npm install -g npx
