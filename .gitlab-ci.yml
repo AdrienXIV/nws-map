@@ -11,6 +11,6 @@ deploy:
   script:
     - npm install
     # your build command
-    - npm run build
+    #- npm run build
     - npm install -g npx
     - npx netlify-cli deploy --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
