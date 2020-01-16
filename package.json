@@ -9,7 +9,6 @@
     "minifier": "echo 'minify'",
     "deploy-stage": "echo 'Deploying to STAGING'",
     "deploy-prod": "echo 'Deploying to PRODUCTION'"
-
   },
   "repository": {
     "type": "git",
