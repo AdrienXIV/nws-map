@@ -1,3 +1,5 @@
+image: node:10.5.0
+
 stages:
   - deploy
 
@@ -6,10 +8,9 @@ deploy:
   environment:
     name: production
     url: https://your.website.com
-  only:
-    - develop
   script:
     - npm install
     # your build command
     - npm run build
+    - npm install -g npx
     - npx netlify-cli deploy --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
