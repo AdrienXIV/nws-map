@@ -221,7 +221,7 @@ $.ajax({
         content.innerHTML += '<p>' + f.get('description') + '</p>';
         content.innerHTML += '<p>Entreprises :</p>';
         entreprises.forEach(element => {
-          content.innerHTML += '<p>&nbsp;&nbsp; - ' + element.nom  + '</p>';
+          content.innerHTML += '<p>&nbsp;&nbsp; - ' + element.nom + '</p>';
           content.innerHTML += '<BR>';
         });
 
