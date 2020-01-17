@@ -59,7 +59,7 @@ import $ from "jquery";
 
 
 $.ajax({
-  url: 'http://localhost:8080/coordonnees',
+  url: 'https://nws-api.herokuapp.com/coordonnees',
   type: 'GET',
   dataType: 'json',
   success: function (response) {
